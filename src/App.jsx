@@ -5,42 +5,12 @@ import {
   Moon, Camera, X, Share2, HelpCircle, FileText, Plane,
   Briefcase, MessageCircle, ArrowRight, Star, Settings,
   Coffee, Users, GraduationCap, Zap, TicketPercent,
-  TrendingUp, Eye, Gift, Lock
+  TrendingUp, Eye, Gift, Lock, Code
 } from 'lucide-react';
 import ProfitCalculator from './components/ProfitCalculator';
-
-const Preloader = ({ onComplete }) => {
-  const [count, setCount] = useState(0);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCount((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setTimeout(onComplete, 500);
-          return 100;
-        }
-        return prev + 2;
-      });
-    }, 20);
-    return () => clearInterval(interval);
-  }, [onComplete]);
-
-  return (
-    <div className="fixed inset-0 z-[100] bg-slate-950 flex flex-col items-center justify-center text-white">
-      <div className="text-4xl font-black tracking-tighter mb-4 animate-pulse">
-        WARDHA<span className="text-amber-400">RIDES</span>
-      </div>
-      <div className="w-64 h-1 bg-slate-800 rounded-full overflow-hidden">
-        <div
-          className="h-full bg-amber-400 transition-all duration-100 ease-out"
-          style={{ width: `${count}%` }}
-        />
-      </div>
-      <div className="mt-2 text-xs font-mono text-slate-500">{count}%</div>
-    </div>
-  );
-};
+import Preloader from './components/Preloader';
+import Hero from './components/Hero';
+import BookingTerminal from './components/BookingTerminal';
 
 const App = () => {
   const [loading, setLoading] = useState(true);
@@ -79,22 +49,25 @@ const App = () => {
   // UI State
   const [showGallery, setShowGallery] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
-  const [isAdminOpen, setIsAdminOpen] = useState(false); // Modal visibility
-  const [isLoggedIn, setIsLoggedIn] = useState(false);   // Auth status
+  const [isAdminOpen, setIsAdminOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [adminPass, setAdminPass] = useState('');
   const [loginError, setLoginError] = useState(false);
   const [showReferral, setShowReferral] = useState(false);
 
+  // SYSTEM STATE
+  const [showTerminal, setShowTerminal] = useState(false);
+
   // Calculated
   const [quote, setQuote] = useState(0);
-  const [baseQuote, setBaseQuote] = useState(0); // Before surge/discount
+  const [baseQuote, setBaseQuote] = useState(0);
   const [breakdown, setBreakdown] = useState([]);
   const [showLuggageWarning, setShowLuggageWarning] = useState(false);
 
   // Constants
   const WHATSAPP_NUMBER = "919876543210";
-  const GOOGLE_FORM_URL = "https://forms.gle/CL69KrpyP1LojWxa8";
   const ADMIN_SHEET_URL = "https://docs.google.com/spreadsheets/d/17lZ1pc8QaSYsiPgJ2ZK30kr-9lVTj2b0Ubn0TBUK7YM/edit?usp=sharing";
+  const GOOGLE_FORM_URL = "https://forms.gle/CL69KrpyP1LojWxa8";
 
   // Save Preferences
   useEffect(() => {
@@ -131,7 +104,7 @@ const App = () => {
     "DMIMS Main Gate", "Girls Hostel (Sawangi)", "Boys Hostel (Sawangi)", "T-Point", "Staff Quarters", "Other"
   ];
 
-  const SURGE_MULTIPLIER = 1.25; // 25% Increase
+  const SURGE_MULTIPLIER = 1.25;
 
   const applyPromo = () => {
     const code = promoCode.toUpperCase().trim();
@@ -286,460 +259,332 @@ const App = () => {
   }, [activeTab, tripType, days, distance, nagpurPackage, isNightDriving, airportMode, passengers, luggage, selfDrivePackage, dates, hangoutPackage, surgeActive, activeDiscount]);
 
 
-  const handleWhatsApp = () => {
+  // SYSTEM ACTIONS
+  const handleInitiateBooking = () => {
+    setShowTerminal(true);
+  };
+
+  const handleDispatch = () => {
     // Analytics: Track "Book Click" as Revenue (Simulation)
     const newTotal = totalRevenue + quote;
     setTotalRevenue(newTotal);
     localStorage.setItem('wr_revenue', newTotal.toString());
 
-    let text = `*New Student Booking*\nType: ${activeTab}\nMode: ${tripType}\nPickup: ${pickupLocation}\nPax: ${passengers}`;
-    if (tripType === 'hangout') text += `\nPkg: ${hangoutPackage}`;
-    if (activeTab === 'self' && tripType !== 'hangout') text += `\nDist: ${distance} km`;
-    if (surgeActive) text += `\n(Surge Applied)`;
-    if (activeDiscount > 0) text += `\nPromo: ${promoCode}`;
-    text += `\nEst. Price: ₹${quote}`;
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`, '_blank');
+    // Redirect to Google Form - The "Secure Portal"
+    window.open(GOOGLE_FORM_URL, '_blank');
+    setShowTerminal(false);
   };
 
   if (loading) return <Preloader onComplete={() => setLoading(false)} />;
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-800 selection:bg-amber-200">
+    <div className="min-h-screen text-slate-800 selection:bg-amber-300/30">
 
       {/* Navigation */}
-      <nav className="fixed w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-200">
-        <div className="max-w-md mx-auto px-6 h-16 flex justify-between items-center">
+      <nav className="fixed w-full z-50 top-0 left-0 p-4">
+        <div className="max-w-md mx-auto h-16 flex justify-between items-center glass-panel rounded-full px-6">
           <div className="flex items-center gap-2">
-            <div className="bg-slate-900 p-1.5 rounded-lg rotate-3">
-              <Car className="text-amber-400" size={20} />
+            <div className="bg-slate-900 p-1.5 rounded-lg rotate-3 shadow-lg">
+              <Car className="text-amber-400" size={18} />
             </div>
-            <span className="font-bold text-xl tracking-tight text-slate-900">Wardha<span className="text-amber-500">Rides</span></span>
+            <span className="font-bold text-lg tracking-tight text-slate-900">Wardha<span className="text-amber-600">Rides</span></span>
           </div>
           <button onClick={() => {
             if (navigator.share) navigator.share({ url: window.location.href, title: 'Wardha Rides' });
-          }} className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-500">
-            <Share2 size={20} />
+          }} className="p-2 hover:bg-white/50 rounded-full transition-colors text-slate-600">
+            <Share2 size={18} />
           </button>
         </div>
       </nav>
 
-      <main className="max-w-md mx-auto pt-24 pb-12 px-6">
+      <main className="max-w-7xl mx-auto pt-24 pb-32 px-4 space-y-6 lg:space-y-0 lg:grid lg:grid-cols-12 lg:gap-12">
 
-        {/* Premium Hero */}
-        <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-slate-200 mb-8 border border-white group">
-          <div className="absolute inset-0 bg-slate-900"></div>
-          {surgeActive && (
-            <div className="absolute top-0 left-0 w-full bg-amber-500 text-slate-900 text-xs font-bold text-center py-1 z-20 animate-pulse flex justify-center items-center gap-1">
-              <Zap size={12} fill="currentColor" /> High Demand: Surge Pricing Active
-            </div>
-          )}
-          <div className="relative p-8 text-center text-white z-10 pt-10">
-            <div className="flex justify-center gap-2 mb-3">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-400/10 text-amber-400 rounded-full text-[10px] font-bold tracking-wider uppercase border border-amber-400/20">
-                <Star size={10} fill="currentColor" /> Premium Fleet
-              </div>
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/20 text-white rounded-full text-[10px] font-bold tracking-wider uppercase border border-white/20">
-                <GraduationCap size={12} /> Campus Edition
-              </div>
-            </div>
-            <h1 className="text-3xl font-black mb-1 leading-tight">Tata Altroz XZ+</h1>
-            <p className="text-slate-400 text-sm font-medium mb-6">Sunroof • 5-Star Safety • Harmon Kardon</p>
+        {/* LEFT COLUMN: VISUALS */}
+        <div className="lg:col-span-7 space-y-6">
+          {/* PREMIUM HERO V2 */}
+          <Hero surgeActive={surgeActive} onViewGallery={() => setShowGallery(true)} />
 
-            <button
-              onClick={() => setShowGallery(true)}
-              className="bg-white/10 hover:bg-white/20 hover:scale-105 active:scale-95 transition-all text-white text-xs font-bold py-3 px-6 rounded-xl backdrop-blur-md border border-white/10 flex items-center gap-2 mx-auto"
-            >
-              <Camera size={14} /> View Gallery
-            </button>
+          {/* Desktop Promo/Value Props (Visible on large screens) */}
+          <div className="hidden lg:grid grid-cols-2 gap-4">
+            <div className="bg-amber-50 rounded-3xl p-6 border border-amber-100">
+              <h3 className="font-bold text-slate-900 mb-2">⚡ No Hidden Charges</h3>
+              <p className="text-sm text-slate-600">Fuel, Tolls, and Driver Allowance are strictly calculated. No surprises.</p>
+            </div>
+            <div className="bg-indigo-50 rounded-3xl p-6 border border-indigo-100">
+              <h3 className="font-bold text-slate-900 mb-2">🎓 Student Special</h3>
+              <p className="text-sm text-slate-600">Exclusive discounts and campus pickup points for data-driven savings.</p>
+            </div>
           </div>
         </div>
 
-        {/* Segment Control */}
-        <div className="bg-white p-1.5 rounded-2xl shadow-sm border border-slate-100 mb-8 flex relative">
-          <button
-            onClick={() => setActiveTab('taxi')}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all relative z-10 ${activeTab === 'taxi' ? 'text-white shadow-lg shadow-slate-200' : 'text-slate-400 hover:text-slate-600'}`}
-          >
-            {activeTab === 'taxi' && <div className="absolute inset-0 bg-slate-900 rounded-xl -z-10 animate-fade-in" />}
-            <User size={16} /> With Driver
-          </button>
-          <button
-            onClick={() => setActiveTab('self')}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all relative z-10 ${activeTab === 'self' ? 'text-white shadow-lg shadow-slate-200' : 'text-slate-400 hover:text-slate-600'}`}
-          >
-            {activeTab === 'self' && <div className="absolute inset-0 bg-slate-900 rounded-xl -z-10 animate-fade-in" />}
-            <ShieldCheck size={16} /> Self Drive
-          </button>
-        </div>
+        {/* RIGHT COLUMN: BOOKING ENGINE (STICKY) */}
+        <div className="lg:col-span-5 relative">
+          <div className="lg:sticky lg:top-24 space-y-6">
 
-        {/* Input Form */}
-        <div className="space-y-6">
+            {/* --- MAIN INTERFACE (Bento Grid) --- */}
 
-          {/* Trip Modes */}
-          <div className="grid grid-cols-2 gap-3">
-            {[
-              { id: 'hangout', label: 'Hangout Mode', icon: Coffee, desc: 'Cafe & Chill' },
-              { id: 'nagpur', label: 'Nagpur / Local', icon: MapPin, desc: 'Shop & Dine' },
-              { id: 'airport', label: 'Airport', icon: Plane, desc: 'Drop / Pickup' },
-              { id: 'outstation', label: 'Outstation', icon: Car, desc: 'Long Drive' }
-            ].filter(opt => activeTab === 'taxi' || opt.id !== 'airport').map(opt => (
-              <button
-                key={opt.id}
-                onClick={() => setTripType(opt.id)}
-                className={`p-3 rounded-2xl border transition-all text-left group ${tripType === opt.id ? 'bg-amber-50 border-amber-400 shadow-md shadow-amber-100' : 'bg-white border-slate-100 hover:border-amber-200'}`}
-              >
-                <div className="flex justify-between items-start mb-1">
-                  <opt.icon size={20} className={tripType === opt.id ? 'text-amber-600' : 'text-slate-300 group-hover:text-amber-400'} />
-                  {tripType === opt.id && <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />}
-                </div>
-                <div className={`font-bold text-sm leading-tight ${tripType === opt.id ? 'text-slate-900' : 'text-slate-500'}`}>{opt.label}</div>
-                <div className="text-[10px] text-slate-400 font-medium">{opt.desc}</div>
-              </button>
-            ))}
-          </div>
+            {/* 1. Trip Type Selector (Glass) */}
+            <div className="glass-panel p-1.5 rounded-2xl flex relative w-full">
+              <button onClick={() => setActiveTab('taxi')} className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'taxi' ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-500 hover:bg-white/50'}`}>With Driver</button>
+              <button onClick={() => setActiveTab('self')} className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'self' ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-500 hover:bg-white/50'}`}>Self Drive</button>
+            </div>
 
-          {/* Configuration Card */}
-          <div className="bg-white rounded-3xl p-6 shadow-xl shadow-slate-100 border border-slate-50">
-
-            {/* Passenger & Luggage (Taxi Only) */}
-            {activeTab === 'taxi' && (
-              <div className="mb-6 pb-6 border-b border-slate-50">
-                <div className="flex justify-between items-center mb-4">
-                  <div>
-                    <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Group Size</div>
-                    <div className="font-bold text-xl text-slate-800 mt-1 flex items-center gap-2">
-                      <Users size={18} className="text-slate-400" /> {passengers} <span className="text-sm font-normal text-slate-400">Students</span>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <button onClick={() => setPassengers(Math.max(1, passengers - 1))} className="w-10 h-10 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-600 flex items-center justify-center font-bold transition-colors">-</button>
-                    <button onClick={() => setPassengers(Math.min(5, passengers + 1))} className="w-10 h-10 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-600 flex items-center justify-center font-bold transition-colors">+</button>
-                  </div>
-                </div>
-
-                {tripType !== 'hangout' && (
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Luggage</div>
-                      <div className="font-bold text-xl text-slate-800 mt-1">{luggage} <span className="text-sm font-normal text-slate-400">Bags</span></div>
-                    </div>
-                    <div className="flex gap-2">
-                      <button onClick={() => setLuggage(Math.max(0, luggage - 1))} className="w-10 h-10 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-600 flex items-center justify-center font-bold transition-colors">-</button>
-                      <button onClick={() => setLuggage(Math.min(6, luggage + 1))} className="w-10 h-10 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-600 flex items-center justify-center font-bold transition-colors">+</button>
-                    </div>
-                  </div>
-                )}
-                {showLuggageWarning && <div className="mt-4 text-xs bg-amber-50 text-amber-700 p-3 rounded-xl flex items-start gap-2 leading-relaxed"><AlertCircle size={14} className="mt-0.5 shrink-0" /> Compact Boot. Limit bags for 5 pax.</div>}
+            {/* 2. Destination Grid (Bento) */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="col-span-2">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-2 mb-1.5 block">Select Mode</label>
               </div>
-            )}
-
-            {/* Dynamic Inputs based on Type */}
-            <div className="space-y-4">
-
-              {/* Campus Quick-Pick */}
-              <div>
-                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Campus Pickup Point</label>
-                <select
-                  value={pickupLocation}
-                  onChange={(e) => setPickupLocation(e.target.value)}
-                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-slate-800 font-bold text-sm text-slate-700"
+              {[
+                { id: 'hangout', label: 'Hangout', icon: Coffee, desc: '4/8 Hrs' },
+                { id: 'nagpur', label: 'Nagpur', icon: MapPin, desc: 'Local' },
+                { id: 'airport', label: 'Airport', icon: Plane, desc: 'Drop/Pick' },
+                { id: 'outstation', label: 'Long Drive', icon: Car, desc: 'Multi-Day' }
+              ].filter(opt => activeTab === 'taxi' || opt.id !== 'airport').map(opt => (
+                <button
+                  key={opt.id}
+                  onClick={() => setTripType(opt.id)}
+                  className={`p-4 rounded-3xl border text-left transition-all duration-300 relative overflow-hidden group ${tripType === opt.id ? 'bg-gradient-to-br from-slate-900 to-slate-800 text-white border-transparent shadow-xl shadow-slate-200' : 'bg-white border-slate-100 hover:border-slate-200 hover:shadow-md'}`}
                 >
-                  {CAMPUS_LOCATIONS.map(loc => <option key={loc} value={loc}>{loc}</option>)}
-                </select>
-              </div>
-
-              {/* HANGOUT MODE */}
-              {tripType === 'hangout' && (
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    onClick={() => setHangoutPackage('cafe')}
-                    className={`p-3 rounded-xl border text-left ${hangoutPackage === 'cafe' ? 'bg-slate-800 text-white border-slate-800' : 'bg-slate-50 border-slate-100'}`}
-                  >
-                    <div className="text-xs font-bold mb-1 opacity-70">4 Hours</div>
-                    <div className="font-bold">Cafe Hop</div>
-                  </button>
-                  <button
-                    onClick={() => setHangoutPackage('dam')}
-                    className={`p-3 rounded-xl border text-left ${hangoutPackage === 'dam' ? 'bg-slate-800 text-white border-slate-800' : 'bg-slate-50 border-slate-100'}`}
-                  >
-                    <div className="text-xs font-bold mb-1 opacity-70">6 Hours</div>
-                    <div className="font-bold">Dam Visit</div>
-                  </button>
-                </div>
-              )}
-
-              {/* NAGPUR MODE */}
-              {activeTab === 'taxi' && tripType === 'nagpur' && (
-                <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Package</label>
-                  <div className="flex flex-col gap-2">
-                    <label className={`block p-3 rounded-xl border-2 transition-all cursor-pointer ${nagpurPackage === 'full' ? 'border-amber-400 bg-amber-50/50' : 'border-slate-100 hover:border-slate-200'}`}>
-                      <input type="radio" value="full" checked={nagpurPackage === 'full'} onChange={() => setNagpurPackage('full')} className="hidden" />
-                      <div className="flex justify-between items-center">
-                        <span className="font-bold text-slate-700">Full Day (12 Hr)</span>
-                        <span className="text-xs font-bold bg-white px-2 py-1 rounded-md text-slate-500 shadow-sm">Best Value</span>
-                      </div>
-                    </label>
-                    <label className={`block p-3 rounded-xl border-2 transition-all cursor-pointer ${nagpurPackage === 'twoPoint' ? 'border-amber-400 bg-amber-50/50' : 'border-slate-100 hover:border-slate-200'}`}>
-                      <input type="radio" value="twoPoint" checked={nagpurPackage === 'twoPoint'} onChange={() => setNagpurPackage('twoPoint')} className="hidden" />
-                      <div className="flex justify-between items-center">
-                        <span className="font-bold text-slate-700">2-Point Visit (6 Hr)</span>
-                      </div>
-                    </label>
-                  </div>
-                </div>
-              )}
-
-              {/* AIRPORT MODE */}
-              {activeTab === 'taxi' && tripType === 'airport' && (
-                <>
-                  <div className="flex bg-slate-100 p-1 rounded-xl">
-                    <button onClick={() => setAirportMode('drop')} className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${airportMode === 'drop' ? 'bg-white shadow text-slate-900' : 'text-slate-400'}`}>Drop to Appt.</button>
-                    <button onClick={() => setAirportMode('pickup')} className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${airportMode === 'pickup' ? 'bg-white shadow text-slate-900' : 'text-slate-400'}`}>Pickup from Appt.</button>
-                  </div>
-                  <input type="datetime-local" min={new Date().toISOString().slice(0, 16)} className="w-full bg-slate-50 border-none rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-slate-900" />
-                </>
-              )}
-
-              {/* OUTSTATION / SELF-DRIVE STANDARD */}
-              {((tripType === 'outstation' && activeTab === 'taxi') || (activeTab === 'self' && tripType !== 'hangout')) && (
-                <>
-                  {/* Self Drive Pkg Selection */}
-                  {activeTab === 'self' && (
-                    <div className="grid grid-cols-2 gap-3 mb-4">
-                      <button
-                        onClick={() => setSelfDrivePackage('daily')}
-                        className={`p-4 rounded-2xl border text-left transition-all ${selfDrivePackage === 'daily' ? 'bg-slate-900 border-slate-900 text-white shadow-lg' : 'bg-white border-slate-100 text-slate-400'}`}
-                      >
-                        <div className="text-xs font-medium opacity-70 mb-1">Daily Rental</div>
-                        <div className="text-lg font-bold">₹2500</div>
-                        <div className="text-[10px] opacity-70 mt-1">250km Limit</div>
-                      </button>
-                      <button
-                        onClick={() => setSelfDrivePackage('12hr')}
-                        className={`p-4 rounded-2xl border text-left transition-all ${selfDrivePackage === '12hr' ? 'bg-slate-900 border-slate-900 text-white shadow-lg' : 'bg-white border-slate-100 text-slate-400'}`}
-                      >
-                        <div className="text-xs font-medium opacity-70 mb-1">12-Hour</div>
-                        <div className="text-lg font-bold">₹1500</div>
-                        <div className="text-[10px] opacity-70 mt-1">250km Limit</div>
-                      </button>
-                    </div>
-                  )}
-
-                  {(activeTab === 'taxi' || selfDrivePackage === 'daily') && (
-                    <div>
-                      <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Trip Duration ({days} Days)</label>
-                      <input type="range" min="1" max="15" value={days} onChange={(e) => setDays(parseInt(e.target.value))} className="w-full accent-slate-900" />
-                    </div>
-                  )}
-                  <div>
-                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Est. Distance (Km)</label>
-                    <input
-                      type="number"
-                      value={distance}
-                      onChange={(e) => setDistance(parseInt(e.target.value) || 0)}
-                      className="w-full bg-slate-50 border-none rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-slate-900"
-                    />
-                    {activeTab === 'self' && distance > 250 && <p className="text-xs text-amber-600 mt-2 font-bold">Excess charged at ₹5/km</p>}
-                  </div>
-                </>
-              )}
-
-              {/* Night Charge Toggle */}
-              {activeTab === 'taxi' && tripType !== 'airport' && tripType !== 'hangout' && (
-                <div className="flex items-center justify-between py-2">
-                  <div className="flex items-center gap-2 text-sm font-medium text-slate-600">
-                    <Moon size={16} /> Night Driving (10PM - 6AM)?
-                  </div>
-                  <input type="checkbox" checked={isNightDriving} onChange={(e) => setIsNightDriving(e.target.checked)} className="accent-slate-900 w-5 h-5 rounded hover:cursor-pointer" />
-                </div>
-              )}
-
-            </div>
-          </div>
-
-          {/* Pricing Summary */}
-          <div className="bg-slate-900 rounded-3xl p-6 text-white shadow-2xl shadow-slate-300 relative overflow-hidden">
-
-            {/* FOMO badge */}
-            <div className="absolute top-0 right-0 bg-red-500 px-3 py-1 rounded-bl-xl text-[10px] font-bold flex items-center gap-1 animate-fade-in">
-              <Eye size={10} className="animate-pulse" /> {viewers} students viewing
-            </div>
-
-            {/* Total & Split Fare */}
-            <div className="border-b border-white/10 pb-6 mb-6 mt-2">
-              <div className="flex justify-between items-end mb-1">
-                <span className="text-slate-400 font-medium">Total Estimate</span>
-                <span className="text-4xl font-black tracking-tight">₹{quote.toLocaleString()}</span>
-              </div>
-              {passengers > 1 && (
-                <div className="flex justify-end items-center gap-2 text-amber-400 animate-pulse">
-                  <span className="text-xs font-bold uppercase tracking-wider">Student Split:</span>
-                  <span className="text-lg font-bold">₹{Math.ceil(quote / passengers)} <span className="text-xs font-normal text-amber-300/80">/ person</span></span>
-                </div>
-              )}
-            </div>
-
-            {/* Promo Code Input */}
-            <div className="flex gap-2 mb-6">
-              <div className="relative flex-1">
-                <TicketPercent className="absolute left-3 top-3.5 text-slate-400" size={16} />
-                <input
-                  type="text"
-                  placeholder="Promo Code"
-                  value={promoCode}
-                  onChange={(e) => setPromoCode(e.target.value)}
-                  className="w-full bg-slate-800 border-none rounded-xl py-3 pl-10 pr-3 text-sm text-white placeholder-slate-500 focus:ring-1 focus:ring-amber-400"
-                />
-              </div>
-              <button onClick={applyPromo} className="bg-amber-400 hover:bg-amber-500 text-slate-900 font-bold px-4 rounded-xl text-sm transition-colors">Apply</button>
-            </div>
-
-            <div className="space-y-3 mb-8">
-              {breakdown.map((item, i) => (
-                <div key={i} className={`flex justify-between text-sm ${item.highlight ? item.color || 'text-amber-400 font-bold' : 'text-slate-300'}`}>
-                  <span className="flex items-center gap-2">{item.icon && <item.icon size={14} />} {item.label}</span>
-                  <span>{item.value}</span>
-                </div>
+                  {tripType === opt.id && <div className="absolute -right-4 -top-4 w-16 h-16 bg-white/10 rounded-full blur-2xl"></div>}
+                  <opt.icon size={22} className={`mb-3 ${tripType === opt.id ? 'text-amber-400' : 'text-slate-300 group-hover:scale-110 transition-transform'}`} />
+                  <div className="font-bold text-sm">{opt.label}</div>
+                  <div className={`text-[10px] font-medium ${tripType === opt.id ? 'text-slate-400' : 'text-slate-400'}`}>{opt.desc}</div>
+                </button>
               ))}
             </div>
 
-            <div className="flex flex-col gap-3">
-              <button onClick={handleWhatsApp} className="w-full bg-green-500 hover:bg-green-400 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg hover:shadow-green-500/30">
-                <MessageCircle size={20} /> Book via WhatsApp
-              </button>
-            </div>
+            {/* 3. Configuration Panel (Glass) */}
+            <div className="glass-panel p-6 rounded-3xl space-y-5">
 
-            <p className="text-[10px] text-center text-slate-500 mt-4 uppercase tracking-widest">
-              {activeTab === 'self' ? 'Excludes Fuel & Tolls/Challans' : 'Excludes Tolls & Parking'}
-            </p>
-          </div>
+              {/* Passenger Control */}
+              {activeTab === 'taxi' && (
+                <div className="flex justify-between items-center pb-5 border-b border-slate-200/50">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600">
+                      <Users size={18} />
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-slate-500">Total Persons</div>
+                      <div className="text-slate-900 font-bold">{passengers} Students</div>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={() => setPassengers(Math.max(1, passengers - 1))} className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center font-bold text-slate-600">-</button>
+                    <button onClick={() => setPassengers(Math.min(5, passengers + 1))} className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center font-bold text-slate-600">+</button>
+                  </div>
+                </div>
+              )}
 
-        </div>
-
-        {/* Footer with Referral Stub */}
-        <div className="mt-12 text-center space-y-6">
-
-          <div onClick={() => setShowReferral(!showReferral)} className="max-w-xs mx-auto bg-amber-50 border border-amber-200 p-4 rounded-2xl cursor-pointer hover:shadow-lg transition-all">
-            <div className="flex items-center justify-center gap-3 text-amber-800 font-bold">
-              <Gift size={20} />
-              <span>Refer a Friend & Earn ₹50!</span>
-            </div>
-            {showReferral && (
-              <div className="mt-3 pt-3 border-t border-amber-200 animate-fade-in text-xs text-amber-700">
-                <p className="mb-2">Share this code with your batchmates:</p>
-                <div className="bg-white p-2 rounded-lg font-mono font-black text-lg tracking-widest border border-dashed border-amber-400 text-slate-800">
-                  STUDENT-{Math.floor(Math.random() * 1000)}
+              {/* Dynamic Inputs */}
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-2 mb-2 block">Pickup Point</label>
+                <div className="relative">
+                  <MapPin size={16} className="absolute left-4 top-4 text-slate-400" />
+                  <select
+                    value={pickupLocation}
+                    onChange={(e) => setPickupLocation(e.target.value)}
+                    className="w-full bg-slate-50 border-none rounded-2xl py-3.5 pl-10 pr-4 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-slate-900/10 transition-all appearance-none cursor-pointer hover:bg-slate-100"
+                  >
+                    {CAMPUS_LOCATIONS.map(loc => <option key={loc} value={loc}>{loc}</option>)}
+                  </select>
                 </div>
               </div>
-            )}
+
+              {/* Contextual Options */}
+              {tripType === 'nagpur' && activeTab === 'taxi' && (
+                <div className="grid grid-cols-2 gap-3 pt-2">
+                  <button
+                    onClick={() => setNagpurPackage('full')}
+                    className={`py-3 rounded-xl text-xs font-bold border-2 transition-all ${nagpurPackage === 'full' ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-100 text-slate-400 hover:border-slate-200'}`}
+                  >
+                    Full Day (₹3500)
+                  </button>
+                  <button
+                    onClick={() => setNagpurPackage('2point')}
+                    className={`py-3 rounded-xl text-xs font-bold border-2 transition-all ${nagpurPackage === '2point' ? 'border-amber-400 bg-amber-50 text-amber-900 border-dashed' : 'border-slate-100 text-slate-400 hover:border-slate-200'}`}
+                  >
+                    2-Point (₹2300)
+                  </button>
+                </div>
+              )}
+
+              {tripType === 'hangout' && (
+                <div className="grid grid-cols-2 gap-3 pt-2">
+                  {['cafe', 'dam'].map(pkg => (
+                    <button
+                      key={pkg}
+                      onClick={() => setHangoutPackage(pkg)}
+                      className={`py-3 rounded-xl text-xs font-bold border-2 transition-all ${hangoutPackage === pkg ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-100 text-slate-400 hover:border-slate-200'}`}
+                    >
+                      {pkg === 'cafe' ? 'Cafe (4hr)' : 'Dam (6hr)'}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {
+                (tripType === 'outstation' || (activeTab === 'self' && tripType !== 'hangout')) && (
+                  <div className="pt-2">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-2 mb-2 block">Distance Estimate</label>
+                    <div className="flex items-center gap-4 bg-slate-50 p-2 rounded-2xl">
+                      <input
+                        type="range"
+                        min="50"
+                        max="600"
+                        step="10"
+                        value={distance}
+                        onChange={(e) => setDistance(parseInt(e.target.value))}
+                        className="flex-1 accent-slate-900 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
+                      />
+                      <div className="bg-white px-3 py-1.5 rounded-xl font-bold text-sm shadow-sm min-w-[80px] text-center">
+                        {distance} km
+                      </div>
+                    </div>
+                  </div>
+                )
+              }
+            </div>
+
+            {/* 4. Pricing Card (Dark Auto-Layout) */}
+            <div className="bg-slate-900 text-white p-8 rounded-[2rem] shadow-2xl relative overflow-hidden group">
+
+              <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/20 blur-[50px] rounded-full group-hover:bg-amber-500/30 transition-all"></div>
+
+              <div className="relative z-10">
+                <div className="flex justify-between items-start mb-6">
+                  <div>
+                    <div className="text-slate-400 text-xs font-medium mb-1 uppercase tracking-wider">Estimated Total</div>
+                    <div className="text-4xl font-black tracking-tighter">
+                      ₹{quote.toLocaleString()}
+                    </div>
+                  </div>
+                  {passengers > 1 && (
+                    <div className="text-right">
+                      <div className="text-amber-400 font-bold text-lg">₹{Math.ceil(quote / passengers)}</div>
+                      <div className="text-slate-500 text-[10px]">per student</div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Promo Field */}
+                <div className="flex gap-2 mb-6">
+                  <input
+                    type="text"
+                    placeholder="PROMO CODE"
+                    value={promoCode}
+                    onChange={(e) => setPromoCode(e.target.value)}
+                    className="bg-white/10 border-none rounded-xl px-4 py-3 text-sm font-bold placeholder:text-white/30 text-white focus:ring-1 focus:ring-amber-400 w-full uppercase tracking-widest"
+                  />
+                  <button onClick={applyPromo} className="bg-amber-400 text-slate-900 px-4 rounded-xl font-bold hover:bg-amber-300 transition-colors">
+                    <CheckCircle size={18} />
+                  </button>
+                </div>
+
+                {/* Action Button */}
+                <button
+                  onClick={handleInitiateBooking}
+                  className="w-full bg-white text-slate-900 font-black py-4 rounded-2xl flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-white/10"
+                >
+                  <MessageCircle className="text-green-600" size={20} fill="currentColor" fillOpacity={0.2} />
+                  <span>BOOK NOW</span>
+                  <ArrowRight size={18} className="opacity-40" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* --- FOOTER (Signature) --- */}
+        <div className="pt-8 pb-4 text-center">
+
+          <div onClick={() => setShowReferral(!showReferral)} className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm border border-slate-100 mb-8 cursor-pointer hover:bg-amber-50 transition-colors">
+            <Gift size={14} className="text-amber-500" />
+            <span className="text-xs font-bold text-slate-600">Get ₹50 Off</span>
+          </div>
+          {showReferral && (
+            <div className="mb-8 animate-fade-in">
+              <div className="bg-white p-3 rounded-xl border border-dashed border-amber-300 inline-block">
+                <div className="text-xs text-slate-400 mb-1">YOUR REFERRAL CODE</div>
+                <div className="font-mono font-black text-lg text-slate-800 tracking-widest">STUDENT-{Math.floor(Math.random() * 100)}</div>
+              </div>
+            </div>
+          )}
+
+          <div className="flex justify-center gap-6 mb-8">
+            <button onClick={() => setShowTerms(true)} className="text-[10px] font-bold text-slate-400 hover:text-slate-600 uppercase tracking-widest">Terms</button>
+            <a href={GOOGLE_FORM_URL} target="_blank" rel="noreferrer" className="text-[10px] font-bold text-slate-400 hover:text-slate-600 uppercase tracking-widest">Upload Docs</a>
+            <button onClick={() => setIsAdminOpen(true)} className="text-[10px] font-bold text-slate-400 hover:text-slate-600 uppercase tracking-widest">Admin</button>
           </div>
 
-          <div className="flex justify-center gap-6">
-            <button
-              onClick={() => setShowTerms(true)}
-              className="text-xs font-bold text-slate-400 hover:text-slate-600 transition-colors"
-            >Terms & Policy
-            </button>
-            <button
-              onClick={() => setIsAdminOpen(true)}
-              className="text-xs font-bold text-slate-400 hover:text-slate-600 transition-colors"
-            >Owners Dashboard
-            </button>
+          {/* SIGNATURE CREDIT */}
+          <div className="flex flex-col items-center gap-2 opacity-60 hover:opacity-100 transition-opacity">
+            <div className="w-8 h-[2px] bg-slate-300 rounded-full mb-1"></div>
+            <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500">
+              <Code size={12} />
+              <span>Designed & Developed by</span>
+              <span className="font-bold text-slate-900">Saurabh</span>
+            </div>
           </div>
 
-          <div className="text-[10px] text-slate-300">
-            Wardha Rides © 2024 • DMIMS Campus Edition
-          </div>
         </div>
 
       </main>
 
       {/* --- MODALS --- */}
 
-      {/* Admin Dashboard / Login */}
+      {/* 1. BOOKING TERMINAL (BOT) */}
+      {showTerminal && (
+        <BookingTerminal
+          details={{
+            pickup: pickupLocation,
+            destination: tripType,
+            price: quote
+          }}
+          onConfirm={handleDispatch}
+          onClose={() => setShowTerminal(false)}
+        />
+      )}
+
+      {/* Admin Dashboard */}
       {isAdminOpen && (
         <div className="fixed inset-0 z-[100] bg-slate-50 animate-fade-in flex flex-col">
-          <div className="bg-slate-900 p-4 text-white flex justify-between items-center shadow-lg">
+          <div className="bg-slate-900 p-4 text-white flex justify-between items-center shadow-lg shrink-0">
             <span className="font-bold flex items-center gap-2"><Briefcase size={18} /> Admin Console</span>
             <button onClick={() => { setIsAdminOpen(false); setLoginError(false); }} className="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg text-xs font-bold transition-colors">Exit</button>
           </div>
-
-          {/* If Logged In: Show Content, Else: Show Login */}
           {isLoggedIn ? (
             <div className="flex flex-col h-full overflow-hidden">
-              {/* Admin Tabs */}
               <div className="flex bg-white border-b border-slate-200 shrink-0">
-                <button
-                  onClick={() => setAdminTab('overview')}
-                  className={`flex-1 py-4 text-sm font-bold border-b-2 transition-all ${adminTab === 'overview' ? 'border-amber-400 text-slate-900 bg-amber-50' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
-                >
-                  Overview & Bookings
-                </button>
-                <button
-                  onClick={() => setAdminTab('calculator')}
-                  className={`flex-1 py-4 text-sm font-bold border-b-2 transition-all ${adminTab === 'calculator' ? 'border-amber-400 text-slate-900 bg-amber-50' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
-                >
-                  Profit & Expense Tool
-                </button>
+                <button onClick={() => setAdminTab('overview')} className={`flex-1 py-4 text-sm font-bold border-b-2 transition-all ${adminTab === 'overview' ? 'border-amber-400 text-slate-900 bg-amber-50' : 'border-transparent text-slate-400 hover:text-slate-600'}`}>Overview</button>
+                <button onClick={() => setAdminTab('calculator')} className={`flex-1 py-4 text-sm font-bold border-b-2 transition-all ${adminTab === 'calculator' ? 'border-amber-400 text-slate-900 bg-amber-50' : 'border-transparent text-slate-400 hover:text-slate-600'}`}>Profit Tool</button>
               </div>
-
-              {/* Tab Content */}
               <div className="flex-1 overflow-hidden bg-slate-100 p-2 sm:p-4">
                 {adminTab === 'overview' ? (
                   <div className="flex flex-col h-full gap-4">
-                    {/* Surge Control Panel */}
                     <div className="p-4 bg-white rounded-2xl shadow-sm border border-slate-200 grid grid-cols-2 gap-4 shrink-0">
                       <div className="flex items-center justify-between bg-amber-50 p-3 rounded-xl border border-amber-100">
-                        <div>
-                          <h3 className="font-bold text-slate-900 text-sm">⚡ Surge Pricing</h3>
-                          <p className="text-[10px] text-slate-500">Toggle High Demand (+25%)</p>
-                        </div>
-                        <label className="relative inline-flex items-center cursor-pointer">
-                          <input type="checkbox" checked={surgeActive} onChange={(e) => setSurgeActive(e.target.checked)} className="sr-only peer" />
-                          <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
-                        </label>
+                        <div><h3 className="font-bold text-slate-900 text-sm">⚡ Surge</h3></div>
+                        <input type="checkbox" checked={surgeActive} onChange={(e) => setSurgeActive(e.target.checked)} className="w-5 h-5 accent-amber-500" />
                       </div>
                       <div className="flex items-center justify-between bg-green-50 p-3 rounded-xl border border-green-100">
-                        <div>
-                          <h3 className="font-bold text-slate-900 text-sm">💰 Revenue (Est.)</h3>
-                          <p className="text-[10px] text-slate-500">Total Bookings Value</p>
-                        </div>
-                        <span className="font-mono text-lg font-black text-green-700">₹{(totalRevenue / 1000).toFixed(1)}k</span>
+                        <div><h3 className="font-bold text-slate-900 text-sm">💰 Revenue</h3></div>
+                        <span className="font-bold text-green-700">₹{(totalRevenue / 1000).toFixed(1)}k</span>
                       </div>
                     </div>
-
-                    {/* Sheet Iframe */}
-                    <div className="flex-1 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden relative">
-                      <iframe src={ADMIN_SHEET_URL} className="absolute inset-0 w-full h-full border-none" title="Admin"></iframe>
-                    </div>
+                    <div className="flex-1 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden relative"><iframe src={ADMIN_SHEET_URL} className="absolute inset-0 w-full h-full border-none" title="Admin"></iframe></div>
                   </div>
-                ) : (
-                  <div className="h-full">
-                    <ProfitCalculator totalRevenue={totalRevenue} />
-                  </div>
-                )}
+                ) : (<div className="h-full"><ProfitCalculator totalRevenue={totalRevenue} /></div>)}
               </div>
             </div>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center p-6">
-              <div className="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-sm text-center">
-                <div className="bg-slate-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Lock size={32} className="text-slate-400" />
-                </div>
-                <h2 className="text-2xl font-black text-slate-900 mb-2">Owner Login</h2>
-                <p className="text-slate-500 text-sm mb-6">Security check to access console.</p>
-
+            <div className="flex-1 flex flex-col items-center justify-center p-6 bg-slate-100">
+              <div className="bg-white p-8 rounded-3xl shadow-xl w-full max-w-sm text-center">
+                <Lock size={32} className="mx-auto text-slate-400 mb-4" />
+                <h2 className="text-2xl font-black text-slate-900 mb-6">Owner Login</h2>
                 <form onSubmit={handleAdminLogin} className="space-y-4">
-                  <input
-                    type="password"
-                    value={adminPass}
-                    onChange={(e) => setAdminPass(e.target.value)}
-                    placeholder="Enter Password"
-                    className="w-full text-center p-3 text-lg font-bold tracking-widest bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900"
-                  />
-                  {loginError && <p className="text-xs text-red-500 font-bold animate-pulse">Incorrect Password</p>}
-                  <button type="submit" className="w-full bg-slate-900 text-white font-bold py-3 rounded-xl hover:bg-slate-800 transition-colors">Access Dashboard</button>
+                  <input type="password" value={adminPass} onChange={(e) => setAdminPass(e.target.value)} placeholder="Password" className="w-full text-center p-3 text-lg font-bold bg-slate-50 border border-slate-200 rounded-xl" />
+                  {loginError && <p className="text-xs text-red-500 font-bold">Incorrect</p>}
+                  <button type="submit" className="w-full bg-slate-900 text-white font-bold py-3 rounded-xl">Access</button>
                 </form>
               </div>
             </div>
@@ -750,22 +595,10 @@ const App = () => {
       {/* Terms Modal */}
       {showTerms && (
         <div className="fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-md flex items-end sm:items-center justify-center p-4 animate-fade-in">
-          <div className="bg-white w-full max-w-lg rounded-3xl p-6 shadow-2xl relative max-h-[80vh] overflow-y-auto">
-            <button onClick={() => setShowTerms(false)} className="absolute top-4 right-4 p-2 bg-slate-100 rounded-full text-slate-500 hover:bg-slate-200"><X size={18} /></button>
-            <h2 className="text-xl font-black mb-6">Terms of Service</h2>
-            <div className="space-y-4 text-sm text-slate-600 leading-relaxed">
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                <h4 className="font-bold text-slate-900 mb-2">Self Drive Policy</h4>
-                <ul className="list-disc pl-4 space-y-1">
-                  <li>Refundable Security Deposit: ₹5000</li>
-                  <li>Original License & Aadhar required.</li>
-                  <li>Fuel is User's responsibility. Car given with Full Tank, expect Full Tank back.</li>
-                </ul>
-              </div>
-              <p><strong>Speed Limits:</strong> Strict 100km/h limit. ₹500 penalty per breach.</p>
-              <p><strong>Cancellations:</strong> Free up to 24 hrs prior. 50% charge if within 24 hrs.</p>
-            </div>
-            <button onClick={() => setShowTerms(false)} className="w-full mt-6 bg-slate-900 text-white font-bold py-4 rounded-xl">I Understand</button>
+          <div className="bg-white w-full max-w-lg rounded-3xl p-6 shadow-2xl relative">
+            <button onClick={() => setShowTerms(false)} className="absolute top-4 right-4 p-2 bg-slate-100 rounded-full"><X size={18} /></button>
+            <h2 className="text-xl font-black mb-4">Terms</h2>
+            <div className="text-sm text-slate-600 space-y-2"><p>Standard rental terms apply.</p></div>
           </div>
         </div>
       )}
@@ -773,13 +606,8 @@ const App = () => {
       {/* Gallery Modal */}
       {showGallery && (
         <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center p-4 animate-fade-in">
-          <button onClick={() => setShowGallery(false)} className="absolute top-6 right-6 text-white/50 hover:text-white"><X size={32} /></button>
-          <div className="text-white text-center">
-            <Car size={64} className="mx-auto text-amber-400 mb-4 opacity-50" />
-            <h3 className="text-2xl font-bold">Gallery Mode</h3>
-            <p className="text-slate-400 mt-2">High-res car images would appear here.</p>
-            <button onClick={() => setShowGallery(false)} className="mt-8 px-6 py-2 border border-white/20 rounded-full text-sm hover:bg-white/10">Close</button>
-          </div>
+          <button onClick={() => setShowGallery(false)} className="absolute top-6 right-6 text-white"><X size={32} /></button>
+          <div className="text-white text-center"><Car size={64} className="mx-auto text-amber-400 mb-4 opacity-50" /><h3 className="text-2xl font-bold">Gallery</h3></div>
         </div>
       )}
 
