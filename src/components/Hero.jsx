@@ -24,7 +24,7 @@ const Hero = ({ surgeActive, onViewGallery }) => {
 
                 <div className="text-center">
                     <h1 className="text-4xl font-black text-white mb-2 tracking-tight drop-shadow-lg">Tata Altroz</h1>
-                    <p className="text-white/60 text-sm font-medium mb-6">Dark Edition • Sunroof • 5-Star</p>
+                    <p className="text-white/60 text-sm font-medium mb-6">5-Star Safety Rated</p>
                     <button
                         onClick={onViewGallery}
                         className="bg-white/10 hover:bg-white/20 text-white text-xs font-bold py-3 px-8 rounded-2xl backdrop-blur-md border border-white/20 transition-all flex items-center gap-2 mx-auto group-hover:bg-white group-hover:text-slate-900"

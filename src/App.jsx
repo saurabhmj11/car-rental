@@ -299,6 +299,14 @@ const App = () => {
 
       <main className="max-w-7xl mx-auto pt-24 pb-32 px-4 space-y-6 lg:space-y-0 lg:grid lg:grid-cols-12 lg:gap-12">
 
+        {/* --- LIVE ACTIVITY HUD (FOMO) --- */}
+        <div className="lg:col-span-12 flex justify-center lg:justify-start mb-2">
+          <div className="inline-flex items-center gap-2 bg-slate-900/90 backdrop-blur-md text-white px-3 py-1.5 rounded-full text-[10px] font-bold border border-white/10 shadow-xl animate-pulse">
+            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+            <span>{viewers} students checking rides right now</span>
+          </div>
+        </div>
+
         {/* LEFT COLUMN: VISUALS */}
         <div className="lg:col-span-7 space-y-6">
           {/* PREMIUM HERO V2 */}
@@ -423,6 +431,37 @@ const App = () => {
               )}
 
               {
+                /* Date Selection for Multi-Day Trips */
+                ((tripType === 'outstation') || (activeTab === 'self' && selfDrivePackage === 'daily')) && (
+                  <div className="grid grid-cols-2 gap-3 pt-2">
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-2 mb-2 block">Start Date</label>
+                      <input
+                        type="date"
+                        className="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-slate-900/10 uppercase tracking-wide"
+                        onChange={(e) => setDates(prev => ({ ...prev, start: e.target.value }))}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-2 mb-2 block">End Date</label>
+                      <div className="relative">
+                        <input
+                          type="date"
+                          className="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-slate-900/10 uppercase tracking-wide"
+                          onChange={(e) => setDates(prev => ({ ...prev, end: e.target.value }))}
+                        />
+                        {days > 1 && (
+                          <div className="absolute -top-8 right-0 bg-slate-900 text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow-lg">
+                            {days} Days
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )
+              }
+
+              {
                 (tripType === 'outstation' || (activeTab === 'self' && tripType !== 'hangout')) && (
                   <div className="pt-2">
                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-2 mb-2 block">Distance Estimate</label>
@@ -436,8 +475,9 @@ const App = () => {
                         onChange={(e) => setDistance(parseInt(e.target.value))}
                         className="flex-1 accent-slate-900 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
                       />
-                      <div className="bg-white px-3 py-1.5 rounded-xl font-bold text-sm shadow-sm min-w-[80px] text-center">
-                        {distance} km
+                      <div className="bg-white px-3 py-1.5 rounded-xl font-bold text-sm shadow-sm min-w-[80px] text-center border border-slate-100 flex flex-col justify-center">
+                        <span>{distance} km</span>
+                        <span className="text-[8px] text-slate-400 font-medium uppercase leading-none mt-0.5">Est. Range</span>
                       </div>
                     </div>
                   </div>
@@ -461,10 +501,25 @@ const App = () => {
                   {passengers > 1 && (
                     <div className="text-right">
                       <div className="text-amber-400 font-bold text-lg">₹{Math.ceil(quote / passengers)}</div>
-                      <div className="text-slate-500 text-[10px]">per student</div>
+                      <div className="text-slate-500 text-[10px]">per person</div>
                     </div>
                   )}
                 </div>
+
+                {/* SQUAD PAY VISUALIZER */}
+                {passengers > 1 && (
+                  <div className="mb-6 p-3 bg-white/5 rounded-xl border border-white/10">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Squad Split</span>
+                      <span className="text-[10px] font-bold text-green-400">Save ₹{Math.floor(quote - (quote / passengers))} together</span>
+                    </div>
+                    <div className="flex gap-1 h-2 overflow-hidden rounded-full">
+                      {Array.from({ length: passengers }).map((_, i) => (
+                        <div key={i} className="flex-1 bg-amber-400/80 first:bg-amber-400"></div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Promo Field */}
                 <div className="flex gap-2 mb-6">
@@ -495,7 +550,7 @@ const App = () => {
         </div>
 
         {/* --- FOOTER (Signature) --- */}
-        <div className="pt-8 pb-4 text-center">
+        <div className="pt-8 pb-4 text-center lg:col-span-12">
 
           <div onClick={() => setShowReferral(!showReferral)} className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm border border-slate-100 mb-8 cursor-pointer hover:bg-amber-50 transition-colors">
             <Gift size={14} className="text-amber-500" />
@@ -610,6 +665,29 @@ const App = () => {
           <div className="text-white text-center"><Car size={64} className="mx-auto text-amber-400 mb-4 opacity-50" /><h3 className="text-2xl font-bold">Gallery</h3></div>
         </div>
       )}
+
+      {/* Mobile Sticky Action Bar */}
+      <div className="fixed bottom-0 left-0 w-full z-40 lg:hidden user-select-none">
+        {/* Gradient Blur Overlay */}
+        <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-white via-white/90 to-transparent pointer-events-none"></div>
+
+        <div className="relative bg-white/80 backdrop-blur-xl border-t border-slate-200/50 p-4 pb-8 flex items-center justify-between gap-4 shadow-[0_-10px_40px_rgba(0,0,0,0.1)]">
+          <div>
+            <div className="text-[10px] text-slate-400 uppercase tracking-wider font-bold mb-0.5">Total Estimate</div>
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl font-black text-slate-900 tracking-tight">₹{quote.toLocaleString()}</span>
+              {passengers > 1 && <span className="text-xs font-bold text-slate-400">/ {passengers}</span>}
+            </div>
+          </div>
+          <button
+            onClick={handleInitiateBooking}
+            className="bg-slate-900 text-white px-8 py-3.5 rounded-2xl font-bold text-sm flex items-center gap-2 shadow-xl shadow-slate-900/20 active:scale-95 transition-all"
+          >
+            <span>BOOK NOW</span>
+            <ArrowRight size={16} />
+          </button>
+        </div>
+      </div>
 
     </div>
   );
